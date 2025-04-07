@@ -1,19 +1,21 @@
-import os
+from app.models.vehicles import Bus, Car
+from instance.config import Config
 
-from dotenv import load_dotenv
-
-from .users import Admin, Client
-
-load_dotenv(".flaskenv")
+from .users import User
 
 
 def create_tables():
-    username = os.environ.get("ADMIN_USERNAME")
-    name = os.environ.get("NAME")
-    password_hash = os.environ.get("PASSWORD")
-    admin = Admin(username=username, name=name, password_hash=password_hash)
+    username = Config.ADMIN_USERNAME
+    name = Config.NAME
+    password_hash = Config.PASSWORD
 
+    admin = User(username=username, name=name)
+    admin.set_password(password_hash)
     admin.create_table()
+
     if admin.create_admin():
-        Client.create_table()
-        # TODO: Create tables for vehicles
+        admin.create_index()
+        Bus.create_table()
+        Car.create_table()
+        Bus.create_index()
+        Car.create_index()
