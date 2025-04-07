@@ -1,24 +1,20 @@
-{% extends "base.html" %} {% block content %}
-<div
-  class="container d-flex flex-column align-items-center justify-content-center vh-100"
->
-  <div class="text-center mb-4">
-    <img
-      src="{{ url_for('static', filename='logo.png') }}"
-      alt="Teterminal Logo"
-      class="mb-3 img-fluid"
-      style="max-width: 150px; height: auto"
-    />
-    <h1 class="display-4 fw-bold">Teterminal</h1>
-    <p>Your real-time on-fleet tracking system</p>
-  </div>
-  <div class="d-grid gap-3 col-12 col-sm-8 col-md-6 col-lg-3 mx-auto">
-    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login_admin') }}"
-      >Admin</a
-    >
-    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login_client') }}"
-      >Client</a
-    >
-  </div>
-</div>
+{% extends "base.html" %}
+{% block content %}
+    <div class="container d-flex flex-column align-items-center justify-content-center vh-100">
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='logo.webp') }}"
+                 alt="Teterminal Logo"
+                 class="mb-3 img-fluid"
+                 width="150px"
+                 height="auto" />
+            <h1 class="display-4 fw-bold">Teterminal</h1>
+            <p>Your real-time on-fleet tracking system</p>
+        </div>
+        <div class="d-grid gap-3 col-12 col-sm-8 col-md-6 col-lg-3 mx-auto">
+            <a class="btn btn-primary btn-lg rounded-pill"
+               href="{{ url_for("auth.login_admin") }}">Admin</a>
+            <a class="btn btn-primary btn-lg rounded-pill"
+               href="{{ url_for("auth.login_client") }}">Client</a>
+        </div>
+    </div>
 {% endblock %}
