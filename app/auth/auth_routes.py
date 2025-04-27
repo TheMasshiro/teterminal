@@ -21,6 +21,11 @@ def login_client():
     return Auth().login_client()
 
 
-@auth.route("/register/client", methods=["GET", "POST"])
-def register_client():
-    return Auth().register_client()
+@auth.route("/signup/client", methods=["GET", "POST"])
+def signup_client():
+    return Auth().signup_client()
+
+
+@auth.route("/signup/admin", methods=["GET", "POST"])
+def create_admin():
+    return Auth().create_admin()
