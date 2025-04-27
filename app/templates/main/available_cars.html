@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% set active_page = "availability" %}
+{% block content %}
+    {% if type == "cars" %}
+        <div class="container my-5">
+            <h2 class="mb-4 text-center">{{ title }}</h2>
+            <div class="d-flex justify-content-start mb-3">
+                <a href="{{ url_for("main.availability") }}"
+                   class="btn btn-outline-danger">
+                    <i class="fa fa-delete-left me-1"></i> Back
+                </a>
+            </div>
+            <div class="card shadow-sm rounded-4 border-0">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark rounded-top text-center">
+                                <tr>
+                                    <th>Car Number</th>
+                                    <th>Terminal</th>
+                                    <th>Destination</th>
+                                    <th>Departure Time</th>
+                                    <th>Status</th>
+                                    <th>Available</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                {% set available_cars = [] %}
+                                {% set arrived_cars = [] %}
+                                {% for car in cars %}
+                                    {% if car.status.lower() == "available" %}
+                                        {% set _ = available_cars.append(car) %}
+                                    {% endif %}
+                                    {% if car.status.lower() == "arrived at destination" %}
+                                        {% set _ = arrived_cars.append(car) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if available_cars or arrived_cars %}
+                                    {% for car in available_cars %}
+                                        <tr>
+                                            <td>{{ car.car_number }}</td>
+                                            <td>{{ car.terminal }}</td>
+                                            <td>{{ car.destination }}</td>
+                                            <td>{{ car.departure_time }}</td>
+                                            <td>
+                                                {% if car.status.lower() == "maintenance" %}
+                                                    <span class="badge text-bg-danger">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "in transit" %}
+                                                    <span class="badge text-bg-warning ">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "arrived at destination" %}
+                                                    <span class="badge text-bg-success">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "shift over" %}
+                                                    <span class="badge text-bg-info">{{ car.status.title() }}</span>
+                                                {% else %}
+                                                    <span class="badge text-bg-primary">{{ car.status.title() }}</span>
+                                                {% endif %}
+                                            </td>
+                                            {% if car.status.lower() == "available" %}
+                                                <td>
+                                                    <i class="fas fa-check text-success"></i>
+                                                </td>
+                                            {% else %}
+                                                <td>
+                                                    <i class="fas fa-times text-danger"></i>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                    {% for car in arrived_cars %}
+                                        <tr>
+                                            <td>{{ car.car_number }}</td>
+                                            <td>{{ car.terminal }}</td>
+                                            <td>{{ car.destination }}</td>
+                                            <td>{{ car.departure_time }}</td>
+                                            <td>
+                                                {% if car.status.lower() == "maintenance" %}
+                                                    <span class="badge text-bg-danger">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "in transit" %}
+                                                    <span class="badge text-bg-warning ">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "arrived at destination" %}
+                                                    <span class="badge text-bg-success">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "shift over" %}
+                                                    <span class="badge text-bg-info">{{ car.status.title() }}</span>
+                                                {% else %}
+                                                    <span class="badge text-bg-primary">{{ car.status.title() }}</span>
+                                                {% endif %}
+                                            </td>
+                                            {% if car.status.lower() == "available" %}
+                                                <td>
+                                                    <i class="fas fa-check text-success"></i>
+                                                </td>
+                                            {% else %}
+                                                <td>
+                                                    <i class="fas fa-times text-danger"></i>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">No available or arrived vehicles found.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

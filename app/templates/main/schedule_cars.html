@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% set active_page = "schedules" %}
+{% block content %}
+    {% if type == "cars" %}
+        <div class="container my-5">
+            <h2 class="mb-4 text-center">{{ title }}</h2>
+            <div class="d-flex justify-content-start mb-3">
+                <a href="{{ url_for("main.schedules") }}" class="btn btn-outline-danger">
+                    <i class="fa fa-delete-left me-1"></i> Back
+                </a>
+            </div>
+            <div class="card shadow-sm rounded-4 border-0">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark rounded-top text-center">
+                                <tr>
+                                    <th>Car Number</th>
+                                    <th>Terminal</th>
+                                    <th>Destination</th>
+                                    <th>Distance</th>
+                                    <th>Departure Time</th>
+                                    <th>Estimated Time of Arrival</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                {% set in_transit_cars = [] %}
+                                {% for car in cars %}
+                                    {% if car.status.lower() == "in transit" %}
+                                        {% set _ = in_transit_cars.append(car) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if in_transit_cars %}
+                                    {% for car in in_transit_cars %}
+                                        <tr>
+                                            <td>{{ car.car_number }}</td>
+                                            <td>{{ car.terminal }}</td>
+                                            <td>{{ car.destination }}</td>
+                                            <td>{{ car.distance | round(2) }} km</td>
+                                            <td>{{ car.departure_time }}</td>
+                                            <td>{{ car.eta }}</td>
+                                            <td>
+                                                {% if car.status.lower() == "maintenance" %}
+                                                    <span class="badge text-bg-danger">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "in transit" %}
+                                                    <span class="badge text-bg-warning ">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "arrived at destination" %}
+                                                    <span class="badge text-bg-success">{{ car.status.title() }}</span>
+                                                {% else %}
+                                                    <span class="badge text-bg-primary">{{ car.status.title() }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">No cars in transit at the moment.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

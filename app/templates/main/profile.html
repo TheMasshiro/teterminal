@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% set active_page = "profile" %}
+{% block content %}
+    <div class="container-fluid py-4">
+        <!-- Profile Header -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-12 col-lg-10 text-center">
+                <div class="d-flex align-items-center justify-content-center">
+                    <i class="fa-solid fa-user-circle me-3 fs-1"></i>
+                    <h1 class="display-5 mb-0">Profile</h1>
+                </div>
+                <p class="text-muted mt-2">View and update your profile details</p>
+            </div>
+        </div>
+        <!-- Profile Card -->
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <div class="card bg-dark text-light border-secondary">
+                    <div class="card-body p-0">
+                        <div class="row g-0">
+                            <!-- Left Column: Profile Picture -->
+                            <div class="col-md-4 p-4 text-center border-end border-secondary">
+                                <img src="{{ current_user.avatar(size=180) }}"
+                                     class="img-fluid rounded-circle mb-3"
+                                     alt="Profile Picture"
+                                     width="180"
+                                     height="180">
+                                <h4 class="mb-1">{{ current_user.first_name }} {{ current_user.last_name }}</h4>
+                                <p class="text-muted mb-0">@{{ current_user.username }}</p>
+                            </div>
+                            <!-- Right Column: Personal Information -->
+                            <div class="col-md-8 p-4">
+                                <h5 class="mb-4">Personal Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <div>
+                                            <label class="text-muted d-block mb-1">First Name</label>
+                                            <p class="mb-0 fs-5">{{ current_user.first_name }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-4">
+                                        <div>
+                                            <label class="text-muted d-block mb-1">Last Name</label>
+                                            <p class="mb-0 fs-5">{{ current_user.last_name }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-4">
+                                        <div>
+                                            <label class="text-muted d-block mb-1">Email</label>
+                                            <p class="mb-0 fs-5">{{ current_user.email }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-4">
+                                        <div>
+                                            <label class="text-muted d-block mb-1">Username</label>
+                                            <p class="mb-0 fs-5">{{ current_user.username }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <a href="{{ url_for("main.update_profile", username=current_user.username) }}"
+                                       class="btn btn-outline-light btn-sm">
+                                        <i class="fa-solid fa-pencil-alt me-2"></i> Edit Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Logout Button -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-12 col-lg-10 text-end">
+                <a href="{{ url_for("auth.logout") }}"
+                   class="btn btn-outline-danger btn-sm">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

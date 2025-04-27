@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="d-flex align-items-center justify-content-center vh-100">
+        <div class="text-center">
+            <h1 class="display-1">500</h1>
+            <h2 class="display-4">Internal Server Error</h2>
+            <p class="lead mb-5">Oops! Something went wrong on our end. We're working to fix it.</p>
+            <a href="{{ url_for("main.index") }}" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i>Go to Homepage
+            </a>
+            <div class="alert alert-info mt-5">
+                <p>The administrator has been notified. Sorry for the inconvenience!</p>
+                <p class="mt-3">If the problem persists, please contact me on GitHub.</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

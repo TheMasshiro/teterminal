@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="d-flex align-items-center justify-content-center vh-100">
+        <div class="text-center">
+            <h1 class="display-1">401</h1>
+            <h2 class="display-4">Unauthorized Access</h2>
+            <p class="lead mb-5">Sorry, you don't have permission to view this page.</p>
+            <a href="{{ url_for("main.index") }}" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i>Go to Homepage
+            </a>
+        </div>
+    </div>
+{% endblock %}

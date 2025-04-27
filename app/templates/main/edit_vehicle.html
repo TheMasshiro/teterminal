@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% if type == "bus" %}
+    {% set active_page = "manage_buses" %}
+{% else %}
+    {% set active_page = "manage_cars" %}
+{% endif %}
+{% block content %}
+    <div class="d-flex justify-content-center align-items-center vh-100">
+        <div class="text-center">
+            <h1>{{ title }}</h1>
+            <form action="" method="post" novalidate>
+                <div class="shadow-lg p-4 rounded-4">
+                    {{ form.hidden_tag() }}
+                    <div class="row g-4 mb-3 justify-content-center">
+                        <div class="col-md-4">
+                            {{ form.vehicle_number(placeholder=type.title() + ' Number',
+                            size=32,
+                            class="form-control form-control-lg text-center shadow-sm",
+                            value=(vehicle.bus_number if type == "bus" else vehicle.car_number),
+                            required=True) }}
+                            {% for error in form.vehicle_number.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.plate_number(placeholder="Plate Number", size=32, class="form-control form-control-lg text-center shadow-sm", value=vehicle.plate_number, required=True) }}
+                            {% for error in form.plate_number.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2 justify-content-center">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Terminal</label>
+                        </div>
+                    </div>
+                    <div class="row g-4 mb-3 justify-content-center">
+                        <div class="col-md-4">
+                            {{ form.from_province(class="form-select form-select-lg text-center shadow-sm", required=True) }}
+                            {% for error in form.from_province.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.from_city(class="form-select form-select-lg text-center shadow-sm", required=True) }}
+                            {% for error in form.from_city.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2 justify-content-center">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Destination</label>
+                        </div>
+                    </div>
+                    <div class="row g-4 mb-3 justify-content-center">
+                        <div class="col-md-4">
+                            {{ form.to_province(class="form-select form-select-lg text-center shadow-sm", required=True) }}
+                            {% for error in form.to_province.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.to_city(class="form-select form-select-lg text-center shadow-sm", required=True) }}
+                            {% for error in form.to_city.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="row g-4 mb-3 justify-content-center">
+                        <div class="col-md-4">
+                            <div class="input-group input-group-lg shadow-sm">
+                                {{ form.avg_speed(class="form-control text-center", min=20, max=120, value=vehicle.average_speed | int, required=True) }}
+                                <span class="input-group-text">km/h</span>
+                            </div>
+                            {% for error in form.avg_speed.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="row g-4 mb-3 justify-content-center">
+                        <div class="col-md-4">
+                            {{ form.status(class="form-select form-select-lg text-center shadow-sm", value=vehicle.status, required=True) }}
+                            {% for error in form.status.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                    {% set confirm_message = "Updating this " + type + " will reset the ETA, continue?" %}
+                    <div class="row mt-4 justify-content-center">
+                        <div class="col-md-6">
+                            {{ form.submit(class="btn btn-primary btn-lg w-100 shadow-sm",
+                                                        onclick="return confirm('" + confirm_message + "')") }}
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="mt-3">
+                <a class="btn btn-outline-danger"
+                   {% if type == "bus" %}
+                   href="{{ url_for("main.manage_buses") }}">
+                {% elif type == "car" %}
+                    href="{{ url_for("main.manage_cars") }}">
+                {% endif %}
+            Cancel</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

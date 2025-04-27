@@ -1,45 +1,76 @@
 {% extends "base.html" %}
 {% set active_page = "home" %}
 {% block content %}
-    {% if is_admin %}
-        <div class="d-flex justify-content-center align-items-center vh-100">
-            <div class="card shadow-lg p-4 rounded-4">
-                <div class="card-body">
-                    <h2 class="text-center mb-4">Admin Panel</h2>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">First</th>
-                                    <th scope="col">Last</th>
-                                    <th scope="col">Handle</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <th scope="row">1</th>
-                                    <td>Mark</td>
-                                    <td>Otto</td>
-                                    <td>@mdo</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">2</th>
-                                    <td>Jacob</td>
-                                    <td>Thornton</td>
-                                    <td>@fat</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">3</th>
-                                    <td colspan="2">Larry the Bird</td>
-                                    <td>@twitter</td>
-                                </tr>
-                            </tbody>
-                        </table>
+    <div class="container d-flex flex-column align-items-center justify-content-center vh-100">
+        <div class="text-center mb-5">
+            <h1 class="fw-bold">
+                <i class="fa-solid fa-clipboard-list me-2"></i> Fleet Dashboard
+            </h1>
+            <p class="text-muted">Welcome! Choose an option below</p>
+        </div>
+        <!-- Row 1: Availability + Schedules -->
+        <div class="row w-100 justify-content-center mb-3">
+            <div class="col-12 col-md-4 mb-3 mb-md-0">
+                <a class="btn btn-primary btn-lg w-100 shadow-sm"
+                   href="{{ url_for("main.availability") }}">
+                    <i class="fa-solid fa-clipboard-list me-2"></i> Availability
+                </a>
+            </div>
+            <div class="col-12 col-md-4">
+                <a class="btn btn-secondary btn-lg w-100 shadow-sm"
+                   href="{{ url_for("main.schedules") }}">
+                    <i class="fa-solid fa-calendar-days me-2"></i> Schedules
+                </a>
+            </div>
+        </div>
+        <!-- Row 2: Profile + Logout -->
+        <div class="row w-100 justify-content-center mb-3">
+            <div class="col-12 col-md-4 mb-3 mb-md-0">
+                <a class="btn btn-warning btn-lg w-100 shadow-sm"
+                   href="{{ url_for('main.profile', username=current_user.username) }}">
+                    <i class="fa-solid fa-user me-2"></i> Profile
+                </a>
+            </div>
+            <div class="col-12 col-md-4">
+                <a class="btn btn-danger btn-lg w-100 shadow-sm"
+                   href="{{ url_for("auth.logout") }}">
+                    <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+                </a>
+            </div>
+        </div>
+        <!-- Row 3: Admin Dropdown (centered) -->
+        {% if current_user.user_type == "admin" %}
+            <div class="row w-100 justify-content-center">
+                <div class="col-12 col-md-5">
+                    <div class="dropdown text-center">
+                        <button class="btn btn-info btn-lg dropdown-toggle w-100 shadow-sm"
+                                type="button"
+                                id="adminDropdown"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <i class="fa-solid fa-user-gear me-2"></i> Manage
+                        </button>
+                        <ul class="dropdown-menu w-100 text-center"
+                            aria-labelledby="adminDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for("main.manage_clients") }}">Manage Clients</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for("main.manage_buses") }}">Manage Buses</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for("main.manage_cars") }}">Manage Cars</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for("main.manage_drivers") }}">Manage Drivers</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for("main.manage_conductors") }}">Manage Conductors</a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
-        </div>
-    {% else %}
-    {% endif %}
+        {% endif %}
+    </div>
 {% endblock %}

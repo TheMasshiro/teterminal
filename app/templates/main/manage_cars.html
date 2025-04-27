@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% set active_page = "manage_cars" %}
+{% block content %}
+    {% if current_user.user_type == "admin" %}
+        <div class="container my-5">
+            <h2 class="mb-4 text-center">{{ title }}</h2>
+            <div class="d-flex justify-content-end mb-3">
+                <a href="{{ url_for('main.add_vehicle', type='car') }}"
+                   class="btn btn-success">
+                    <i class="fa fa-plus me-1"></i> Add Car
+                </a>
+            </div>
+            <div class="card shadow-sm rounded-4 border-0">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark rounded-top text-center">
+                                <tr>
+                                    <th>Car Number</th>
+                                    <th>Plate Number</th>
+                                    <th>Terminal</th>
+                                    <th>Destination</th>
+                                    <th>Average Speed</th>
+                                    <th>Departure Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                {% if cars %}
+                                    {% for car in cars %}
+                                        <tr>
+                                            <td>{{ car.car_number }}</td>
+                                            <td>{{ car.plate_number }}</td>
+                                            <td>{{ car.origin_terminal }}</td>
+                                            <td>{{ car.destination }}</td>
+                                            <td>{{ car.average_speed | int }} km/h</td>
+                                            <td>{{ car.departure_time }}</td>
+                                            <td>
+                                                {% if car.status.lower() == "maintenance" %}
+                                                    <span class="badge text-bg-danger">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "in transit" %}
+                                                    <span class="badge text-bg-warning ">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "arrived at destination" %}
+                                                    <span class="badge text-bg-success">{{ car.status.title() }}</span>
+                                                {% elif car.status.lower() == "shift over" %}
+                                                    <span class="badge text-bg-info">{{ car.status.title() }}</span>
+                                                {% else %}
+                                                    <span class="badge text-bg-primary">{{ car.status.title() }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <a href="{{ url_for('main.edit_vehicle', bus_number='null', car_number=car.car_number, plate_number=car.plate_number, type="car") }}"
+                                                       class="btn btn-sm btn-outline-warning">
+                                                        <i class="fa-solid fa-pencil"></i> Edit
+                                                    </a>
+                                                    <form action="{{ url_for('main.delete_vehicle', bus_number='null', car_number=car.car_number, plate_number=car.plate_number, type="car") }}"
+                                                          method="post">
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                onclick="return confirm('Are you sure you want to delete this car?');">
+                                                            <i class="fa-solid fa-trash"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4 text-muted">No vehicles found.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

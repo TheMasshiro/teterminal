@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% set active_page = "availability" %}
+{% block content %}
+    {% if type == "buses" %}
+        <div class="container my-5">
+            <h2 class="mb-4 text-center">{{ title }}</h2>
+            <div class="d-flex justify-content-start mb-3">
+                <a href="{{ url_for("main.availability") }}"
+                   class="btn btn-outline-danger">
+                    <i class="fa fa-delete-left me-1"></i> Back
+                </a>
+            </div>
+            <div class="card shadow-sm rounded-4 border-0">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark rounded-top text-center">
+                                <tr>
+                                    <th>Bus Number</th>
+                                    <th>Terminal</th>
+                                    <th>Destination</th>
+                                    <th>Departure Time</th>
+                                    <th>Status</th>
+                                    <th>Available</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                {% set available_buses = [] %}
+                                {% set arrived_buses = [] %}
+                                {% for bus in buses %}
+                                    {% if bus.status.lower() == "available" %}
+                                        {% set _ = available_buses.append(bus) %}
+                                    {% endif %}
+                                    {% if bus.status.lower() == "arrived at destination" %}
+                                        {% set _ = arrived_buses.append(bus) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if available_buses or arrived_buses %}
+                                    {% for bus in available_buses %}
+                                        <tr>
+                                            <td>{{ bus.bus_number }}</td>
+                                            <td>{{ bus.terminal }}</td>
+                                            <td>{{ bus.destination }}</td>
+                                            <td>{{ bus.departure_time }}</td>
+                                            <td>
+                                                {% if bus.status.lower() == "maintenance" %}
+                                                    <span class="badge text-bg-danger">{{ bus.status.title() }}</span>
+                                                {% elif bus.status.lower() == "in transit" %}
+                                                    <span class="badge text-bg-warning ">{{ bus.status.title() }}</span>
+                                                {% elif bus.status.lower() == "arrived at destination" %}
+                                                    <span class="badge text-bg-success">{{ bus.status.title() }}</span>
+                                                {% elif bus.status.lower() == "shift over" %}
+                                                    <span class="badge text-bg-info">{{ bus.status.title() }}</span>
+                                                {% else %}
+                                                    <span class="badge text-bg-primary">{{ bus.status.title() }}</span>
+                                                {% endif %}
+                                            </td>
+                                            {% if bus.status.lower() == "available" %}
+                                                <td>
+                                                    <i class="fas fa-check text-success"></i>
+                                                </td>
+                                            {% else %}
+                                                <td>
+                                                    <i class="fas fa-times text-danger"></i>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                    {% for bus in arrived_buses %}
+                                        <tr>
+                                            <td>{{ bus.bus_number }}</td>
+                                            <td>{{ bus.terminal }}</td>
+                                            <td>{{ bus.destination }}</td>
+                                            <td>{{ bus.departure_time }}</td>
+                                            <td>
+                                                {% if bus.status.lower() == "maintenance" %}
+                                                    <span class="badge text-bg-danger">{{ bus.status.title() }}</span>
+                                                {% elif bus.status.lower() == "in transit" %}
+                                                    <span class="badge text-bg-warning ">{{ bus.status.title() }}</span>
+                                                {% elif bus.status.lower() == "arrived at destination" %}
+                                                    <span class="badge text-bg-success">{{ bus.status.title() }}</span>
+                                                {% elif bus.status.lower() == "shift over" %}
+                                                    <span class="badge text-bg-info">{{ bus.status.title() }}</span>
+                                                {% else %}
+                                                    <span class="badge text-bg-primary">{{ bus.status.title() }}</span>
+                                                {% endif %}
+                                            </td>
+                                            {% if bus.status.lower() == "available" %}
+                                                <td>
+                                                    <i class="fas fa-check text-success"></i>
+                                                </td>
+                                            {% else %}
+                                                <td>
+                                                    <i class="fas fa-times text-danger"></i>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4 text-muted">No available or arrived buses found.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
