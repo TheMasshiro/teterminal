@@ -17,7 +17,9 @@ def start_db():
 start_db()
 
 from app.auth import auth_bp  # noqa: E402
+from app.errors import errors_bp  # noqa: E402
 from app.main import main_bp  # noqa: E402
 
 app.register_blueprint(auth_bp)
+app.register_blueprint(errors_bp)
 app.register_blueprint(main_bp)
