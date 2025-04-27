@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from datetime import datetime, timedelta
 
 basedir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
@@ -12,12 +13,16 @@ def get_connection():
 class Bus:
     def __init__(
         self,
-        bus_number,
-        plate_number,
-        origin_terminal,
-        destination,
-        average_speed,
+        bus_number=None,
+        plate_number=None,
+        origin_terminal=None,
+        destination=None,
+        average_speed=None,
         status=None,
+        departure_time=None,
+        eta=None,
+        distance=None,
+        original_eta=None,
         id=None,
     ):
         self.id = id
@@ -27,14 +32,18 @@ class Bus:
         self.destination = destination
         self.average_speed = average_speed
         self.status = status
+        self.departure_time = departure_time
+        self.eta = eta
+        self.distance = distance
+        self.original_eta = original_eta
 
     def add_bus(self):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 create_query = """
-                INSERT INTO busses (bus_number, plate_number, origin_terminal, destination, average_speed, status)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO buses (bus_number, plate_number, origin_terminal, destination, average_speed, status, distance, original_eta)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """
                 cur.execute(
                     create_query,
@@ -45,6 +54,8 @@ class Bus:
                         self.destination,
                         self.average_speed,
                         self.status,
+                        self.distance,
+                        self.original_eta,
                     ),
                 )
                 conn.commit()
@@ -60,7 +71,7 @@ class Bus:
             with get_connection() as conn:
                 cur = conn.cursor()
                 get_query = """
-                SELECT * FROM busses WHERE bus_number = ? AND plate_number = ?
+                SELECT * FROM buses WHERE bus_number = ? AND plate_number = ?
                 """
                 cur.execute(get_query, (self.bus_number, self.plate_number))
                 vehicle_data = cur.fetchone()
@@ -75,6 +86,10 @@ class Bus:
                     destination=vehicle_data[4],
                     average_speed=vehicle_data[5],
                     status=vehicle_data[6],
+                    departure_time=vehicle_data[7],
+                    eta=vehicle_data[8],
+                    distance=vehicle_data[9],
+                    original_eta=vehicle_data[10],
                 )
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
@@ -84,18 +99,35 @@ class Bus:
         self,
         bus_number,
         plate_number,
+        origin_terminal,
+        destination,
+        average_speed,
+        status,
+        distance,
+        original_eta,
     ):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 update_query = """
-                UPDATE busses
-                SET bus_number = ?, plate_number = ?
-                WHERE bus_number = ?
+                UPDATE buses
+                SET bus_number = ?, plate_number = ?, origin_terminal = ?, destination = ?, average_speed = ?, status = ?, distance = ?, original_eta = ?
+                WHERE bus_number = ? AND plate_number = ?
                 """
                 cur.execute(
                     update_query,
-                    (bus_number, plate_number, self.bus_number),
+                    (
+                        bus_number,
+                        plate_number,
+                        origin_terminal,
+                        destination,
+                        average_speed,
+                        status,
+                        distance,
+                        original_eta,
+                        self.bus_number,
+                        self.plate_number,
+                    ),
                 )
                 conn.commit()
                 return True
@@ -110,7 +142,7 @@ class Bus:
             with get_connection() as conn:
                 cur = conn.cursor()
                 delete_query = """
-                DELETE FROM busses
+                DELETE FROM buses
                 WHERE bus_number = ? AND plate_number = ?
                 """
                 cur.execute(delete_query, (self.bus_number, self.plate_number))
@@ -122,100 +154,209 @@ class Bus:
             print(f"Error: {e}")
         return False
 
-    def update_destination(self, destination):
+    @staticmethod
+    def update_departure(bus_number, plate_number, status):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 update_query = """
-                UPDATE busses
-                SET destination = ?
-                WHERE bus_number = ? and plate_number = ?
+                UPDATE buses
+                SET departure_time = ?
+                WHERE bus_number = ? AND plate_number = ?
                 """
+
+                departure_time = None
+                now = datetime.now()
+
+                # TODO: make sure the time for breaks
+                if status.lower() == "in transit":
+                    departure_time = now.strftime("%I:%M %p - %d/%m/%y")
+                elif status.lower() == "available":
+                    departure_time = (now + timedelta(minutes=30)).strftime(
+                        "%I:%M %p - %d/%m/%y"
+                    )
+                elif status.lower() == "arrived at destination":
+                    departure_time = (now + timedelta(minutes=10)).strftime(
+                        "%I:%M %p - %d/%m/%y"
+                    )
+                elif status.lower() == "shift over":
+                    departure_time = (now + timedelta(hours=12)).strftime(
+                        "%I:%M %p - %d/%m/%y"
+                    )
+                elif status.lower() == "maintenance":
+                    departure_time = (now + timedelta(hours=48)).strftime(
+                        "%I:%M %p - %d/%m/%y"
+                    )
+
                 cur.execute(
                     update_query,
-                    (destination, self.bus_number, self.plate_number),
+                    (
+                        departure_time,
+                        bus_number,
+                        plate_number,
+                    ),
                 )
                 conn.commit()
                 return True
+        except sqlite3.IntegrityError as e:
+            print(f"Error: {e}")
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
         return False
 
-    def update_origin(self, origin_terminal):
+    @staticmethod
+    def update_eta(bus_number, plate_number, eta):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 update_query = """
-                UPDATE busses
-                SET origin_terminal = ?
-                WHERE bus_number = ? and plate_number = ?
+                UPDATE buses
+                SET eta = ?
+                WHERE bus_number = ? AND plate_number = ?
                 """
                 cur.execute(
                     update_query,
-                    (origin_terminal, self.bus_number, self.plate_number),
+                    (
+                        eta,
+                        bus_number,
+                        plate_number,
+                    ),
                 )
                 conn.commit()
                 return True
+        except sqlite3.IntegrityError as e:
+            print(f"Error: {e}")
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
         return False
 
-    def update_average_speed(self, average_speed):
+    @staticmethod
+    def get_places(bus_number, plate_number):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
-                update_query = """
-                UPDATE busses
-                SET average_speed = ?
-                WHERE bus_number = ? and plate_number = ?
+                get_query = """
+                SELECT origin_terminal, destination
+                FROM buses
+                WHERE bus_number = ? AND plate_number = ?
                 """
                 cur.execute(
-                    update_query,
-                    (average_speed, self.bus_number, self.plate_number),
+                    get_query,
+                    (
+                        bus_number,
+                        plate_number,
+                    ),
                 )
-                conn.commit()
-                return True
+                places = cur.fetchone()
+                return places
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
-        return False
+        return None
 
-    def update_status(self, status):
+    @staticmethod
+    def get_eta_distance(bus_number, plate_number):
+        try:
+            with get_connection() as conn:
+                cur = conn.cursor()
+                get_query = """
+                SELECT distance, original_eta
+                FROM buses
+                WHERE bus_number = ? AND plate_number = ?
+                """
+                cur.execute(
+                    get_query,
+                    (
+                        bus_number,
+                        plate_number,
+                    ),
+                )
+                values = cur.fetchone()
+                return values
+        except sqlite3.DatabaseError as e:
+            print(f"Error: {e}")
+        return None
+
+    @staticmethod
+    def update_status(bus_number, plate_number, status):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 update_query = """
-                UPDATE busses
+                UPDATE buses
                 SET status = ?
-                WHERE bus_number = ? and plate_number = ?
+                WHERE bus_number = ? AND plate_number = ?
                 """
                 cur.execute(
                     update_query,
-                    (status, self.bus_number, self.plate_number),
+                    (
+                        status,
+                        bus_number,
+                        plate_number,
+                    ),
                 )
                 conn.commit()
                 return True
+        except sqlite3.IntegrityError as e:
+            print(f"Error: {e}")
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
         return False
+
+    @staticmethod
+    def get_all_buses():
+        try:
+            with get_connection() as conn:
+                cur = conn.cursor()
+                get_query = """
+                SELECT * FROM buses;
+                """
+                cur.execute(get_query)
+                buses_data = cur.fetchall()
+                if not buses_data:
+                    return []
+
+                return [
+                    Bus(
+                        id=vehicle_data[0],
+                        bus_number=vehicle_data[1],
+                        plate_number=vehicle_data[2],
+                        origin_terminal=vehicle_data[3],
+                        destination=vehicle_data[4],
+                        average_speed=vehicle_data[5],
+                        status=vehicle_data[6],
+                        departure_time=vehicle_data[7],
+                        eta=vehicle_data[8],
+                        distance=vehicle_data[9],
+                        original_eta=vehicle_data[10],
+                    )
+                    for vehicle_data in buses_data
+                ]
+        except sqlite3.DatabaseError as e:
+            print(f"Error: {e}")
+            return []
 
     @staticmethod
     def create_table() -> None:
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
-                users_table = """
-                CREATE TABLE IF NOT EXISTS busses (
+                vehicle_table = """
+                CREATE TABLE IF NOT EXISTS buses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     bus_number TEXT NOT NULL UNIQUE,
                     plate_number TEXT UNIQUE,
                     origin_terminal TEXT NOT NULL,
                     destination TEXT NOT NULL,
                     average_speed REAL,
-                    status TEXT DEFAULT 'At Terminal',
+                    status TEXT DEFAULT 'Available',
+                    departure_time TEXT,
+                    eta INTEGER DEFAULT 0,
+                    distance FLOAT DEFAULT 0,
+                    original_eta INTEGER DEFAULT 0,
                     last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 """
-                cur.execute(users_table)
+                cur.execute(vehicle_table)
                 conn.commit()
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
@@ -226,7 +367,7 @@ class Bus:
             with get_connection() as conn:
                 cur = conn.cursor()
                 bus_index = """
-                CREATE INDEX IF NOT EXISTS idx_cars ON busses(bus_number, plate_number);
+                CREATE INDEX IF NOT EXISTS idx_cars ON buses(bus_number, plate_number);
                 """
                 cur.execute(bus_index)
                 conn.commit()
@@ -237,13 +378,17 @@ class Bus:
 class Car:
     def __init__(
         self,
-        car_number,
-        plate_number,
-        origin_terminal,
-        destination,
-        average_speed,
+        car_number=None,
+        plate_number=None,
+        origin_terminal=None,
+        destination=None,
+        average_speed=None,
         id=None,
         status=None,
+        departure_time=None,
+        distance=None,
+        original_eta=None,
+        eta=None,
     ):
         self.id = id
         self.car_number = car_number
@@ -252,14 +397,18 @@ class Car:
         self.destination = destination
         self.average_speed = average_speed
         self.status = status
+        self.departure_time = departure_time
+        self.eta = eta
+        self.distance = distance
+        self.original_eta = original_eta
 
     def add_car(self):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 create_query = """
-                INSERT INTO clients (car_number, plate_number, origin_terminal, destination, average_speed, status)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO cars (car_number, plate_number, origin_terminal, destination, average_speed, status, distance, original_eta)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """
                 cur.execute(
                     create_query,
@@ -270,6 +419,8 @@ class Car:
                         self.destination,
                         self.average_speed,
                         self.status,
+                        self.distance,
+                        self.original_eta,
                     ),
                 )
                 conn.commit()
@@ -300,6 +451,10 @@ class Car:
                     destination=vehicle_data[4],
                     average_speed=vehicle_data[5],
                     status=vehicle_data[6],
+                    departure_time=vehicle_data[7],
+                    eta=vehicle_data[8],
+                    distance=vehicle_data[9],
+                    original_eta=vehicle_data[10],
                 )
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
@@ -309,18 +464,35 @@ class Car:
         self,
         car_number,
         plate_number,
+        origin_terminal,
+        destination,
+        average_speed,
+        status,
+        distance,
+        original_eta,
     ):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 update_query = """
                 UPDATE cars
-                SET car_number = ?, plate_number = ?
-                WHERE car_number = ?
+                SET car_number = ?, plate_number = ?, origin_terminal = ?, destination = ?, average_speed = ?, status = ?, distance = ?, original_eta = ?
+                WHERE car_number = ? AND plate_number = ?
                 """
                 cur.execute(
                     update_query,
-                    (car_number, plate_number, self.car_number),
+                    (
+                        car_number,
+                        plate_number,
+                        origin_terminal,
+                        destination,
+                        average_speed,
+                        status,
+                        distance,
+                        original_eta,
+                        self.car_number,
+                        self.plate_number,
+                    ),
                 )
                 conn.commit()
                 return True
@@ -347,88 +519,193 @@ class Car:
             print(f"Error: {e}")
         return False
 
-    def update_destination(self, destination):
+    @staticmethod
+    def update_departure(car_number, plate_number, status):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 update_query = """
                 UPDATE cars
-                SET destination = ?
-                WHERE car_number = ? and plate_number = ?
+                SET departure_time = ?
+                WHERE car_number = ? AND plate_number = ?
                 """
+
+                departure_time = None
+                now = datetime.now()
+
+                # TODO: make sure the time for breaks
+                if status.lower() == "in transit":
+                    departure_time = now.strftime("%I:%M %p - %d/%m/%y")
+                elif status.lower() == "available":
+                    departure_time = (now + timedelta(minutes=30)).strftime(
+                        "%I:%M %p - %d/%m/%y"
+                    )
+                elif status.lower() == "arrived at destination":
+                    departure_time = (now + timedelta(minutes=10)).strftime(
+                        "%I:%M %p - %d/%m/%y"
+                    )
+                elif status.lower() == "shift over":
+                    departure_time = (now + timedelta(hours=12)).strftime(
+                        "%I:%M %p - %d/%m/%y"
+                    )
+                elif status.lower() == "maintenance":
+                    departure_time = (now + timedelta(hours=48)).strftime(
+                        "%I:%M %p - %d/%m/%y"
+                    )
+
                 cur.execute(
                     update_query,
-                    (destination, self.car_number, self.plate_number),
+                    (
+                        departure_time,
+                        car_number,
+                        plate_number,
+                    ),
                 )
                 conn.commit()
                 return True
+        except sqlite3.IntegrityError as e:
+            print(f"Error: {e}")
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
         return False
 
-    def update_origin(self, origin_terminal):
+    @staticmethod
+    def update_eta(car_number, plate_number, eta):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 update_query = """
                 UPDATE cars
-                SET origin_terminal = ?
-                WHERE car_number = ? and plate_number = ?
+                SET eta = ?
+                WHERE car_number = ? AND plate_number = ?
                 """
                 cur.execute(
                     update_query,
-                    (origin_terminal, self.car_number, self.plate_number),
+                    (
+                        eta,
+                        car_number,
+                        plate_number,
+                    ),
                 )
                 conn.commit()
                 return True
+        except sqlite3.IntegrityError as e:
+            print(f"Error: {e}")
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
         return False
 
-    def update_average_speed(self, average_speed):
+    @staticmethod
+    def get_places(car_number, plate_number):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
-                update_query = """
-                UPDATE cars
-                SET average_speed = ?
-                WHERE car_number = ? and plate_number = ?
+                get_query = """
+                SELECT origin_terminal, destination
+                FROM cars
+                WHERE car_number = ? AND plate_number = ?
                 """
                 cur.execute(
-                    update_query,
-                    (average_speed, self.car_number, self.plate_number),
+                    get_query,
+                    (
+                        car_number,
+                        plate_number,
+                    ),
                 )
-                conn.commit()
-                return True
+                places = cur.fetchone()
+                return places
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
-        return False
+        return None
 
-    def update_status(self, status):
+    @staticmethod
+    def get_eta_distance(car_number, plate_number):
+        try:
+            with get_connection() as conn:
+                cur = conn.cursor()
+                get_query = """
+                SELECT distance, original_eta
+                FROM cars
+                WHERE car_number = ? AND plate_number = ?
+                """
+                cur.execute(
+                    get_query,
+                    (
+                        car_number,
+                        plate_number,
+                    ),
+                )
+                values = cur.fetchone()
+                return values
+        except sqlite3.DatabaseError as e:
+            print(f"Error: {e}")
+        return None
+
+    @staticmethod
+    def update_status(car_number, plate_number, status):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 update_query = """
                 UPDATE cars
                 SET status = ?
-                WHERE car_number = ? and plate_number = ?
+                WHERE car_number = ? AND plate_number = ?
                 """
                 cur.execute(
                     update_query,
-                    (status, self.car_number, self.plate_number),
+                    (
+                        status,
+                        car_number,
+                        plate_number,
+                    ),
                 )
                 conn.commit()
                 return True
+        except sqlite3.IntegrityError as e:
+            print(f"Error: {e}")
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
         return False
+
+    @staticmethod
+    def get_all_cars():
+        try:
+            with get_connection() as conn:
+                cur = conn.cursor()
+                get_query = """
+                SELECT * FROM cars;
+                """
+                cur.execute(get_query)
+                cars_data = cur.fetchall()
+                if not cars_data:
+                    return []
+
+                return [
+                    Car(
+                        id=vehicle_data[0],
+                        car_number=vehicle_data[1],
+                        plate_number=vehicle_data[2],
+                        origin_terminal=vehicle_data[3],
+                        destination=vehicle_data[4],
+                        average_speed=vehicle_data[5],
+                        status=vehicle_data[6],
+                        departure_time=vehicle_data[7],
+                        eta=vehicle_data[8],
+                        distance=vehicle_data[9],
+                        original_eta=vehicle_data[10],
+                    )
+                    for vehicle_data in cars_data
+                ]
+        except sqlite3.DatabaseError as e:
+            print(f"Error: {e}")
+            return []
 
     @staticmethod
     def create_table() -> None:
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
-                users_table = """
+                vehicle_table = """
                 CREATE TABLE IF NOT EXISTS cars (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     car_number TEXT NOT NULL UNIQUE,
@@ -436,11 +713,15 @@ class Car:
                     origin_terminal TEXT NOT NULL,
                     destination TEXT NOT NULL,
                     average_speed REAL,
-                    status TEXT DEFAULT 'At Terminal',
+                    status TEXT DEFAULT 'Available',
+                    departure_time TEXT,
+                    eta INTEGER DEFAULT 0,
+                    distance FLOAT DEFAULT 0,
+                    original_eta INTEGER DEFAULT 0,
                     last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 """
-                cur.execute(users_table)
+                cur.execute(vehicle_table)
                 conn.commit()
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")

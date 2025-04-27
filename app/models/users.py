@@ -2,7 +2,7 @@ import os
 import sqlite3
 from hashlib import md5
 
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import login
@@ -17,7 +17,6 @@ def get_connection():
 
 @login.user_loader
 def load_user(id):
-    print("load user is working fine")
     return User.get_user(id)
 
 
@@ -27,14 +26,16 @@ class User(UserMixin):
         username,
         id=None,
         email=None,
-        name=None,
+        first_name=None,
+        last_name=None,
         password_hash=None,
         user_type=None,
     ):
         self.id = id
         self.username = username
         self.email = email
-        self.name = name
+        self.first_name = first_name
+        self.last_name = last_name
         self.password_hash = password_hash
         self.user_type = user_type
 
@@ -48,8 +49,6 @@ class User(UserMixin):
 
     def avatar(self, size=128):
         email = self.email
-        if self.email is None:
-            email = "admin@email.com"
         if email is None:
             return None
         digest = md5(email.lower().encode("utf-8")).hexdigest()
@@ -60,17 +59,20 @@ class User(UserMixin):
             with get_connection() as conn:
                 cur = conn.cursor()
 
-                cur.execute("SELECT 1 FROM users WHERE username = ?", (self.username,))
-                if cur.fetchone():
-                    return False
-
                 create_query = """
-                INSERT INTO users (username, name, password_hash, user_type)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO users (username, first_name, last_name, email, password_hash, user_type)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """
                 cur.execute(
                     create_query,
-                    (self.username, self.name, self.password_hash, "admin"),
+                    (
+                        self.username,
+                        "Administrator",
+                        self.last_name,
+                        self.email,
+                        self.password_hash,
+                        "admin",
+                    ),
                 )
                 conn.commit()
                 return True
@@ -85,14 +87,15 @@ class User(UserMixin):
             with get_connection() as conn:
                 cur = conn.cursor()
                 create_query = """
-                INSERT INTO users (username, name, email, password_hash)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO users (username, first_name, last_name, email, password_hash)
+                VALUES (?, ?, ?, ?, ?)
                 """
                 cur.execute(
                     create_query,
                     (
                         self.username,
-                        self.name,
+                        self.first_name,
+                        self.last_name,
                         self.email,
                         self.password_hash,
                     ),
@@ -120,9 +123,10 @@ class User(UserMixin):
                 return User(
                     id=user_data[0],
                     username=user_data[1],
-                    name=user_data[2],
-                    email=user_data[3],
-                    password_hash=user_data[4],
+                    first_name=user_data[2],
+                    last_name=user_data[3],
+                    email=user_data[4],
+                    password_hash=user_data[5],
                     user_type=user_data[5],
                 )
         except sqlite3.DatabaseError as e:
@@ -144,38 +148,42 @@ class User(UserMixin):
                 return User(
                     id=user_data[0],
                     username=user_data[1],
-                    name=user_data[2],
-                    email=user_data[3],
-                    password_hash=user_data[4],
+                    first_name=user_data[2],
+                    last_name=user_data[3],
+                    email=user_data[4],
+                    password_hash=user_data[5],
                     user_type=user_data[5],
                 )
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
             return None
 
-    def update_user(self, name, email, new_password):
+    def update_user(self, first_name=None, last_name=None, new_password=None):
         try:
+            self.set_password(new_password)
             with get_connection() as conn:
                 cur = conn.cursor()
+
+                if current_user.user_type == "admin":
+                    first_name = "Administrator"
+
                 update_query = """
                 UPDATE users
-                SET name = ?, email = ?, password_hash = ?
+                SET first_name = ?, last_name = ?, password_hash = ?
                 WHERE username = ?
                 """
                 cur.execute(
                     update_query,
                     (
-                        name,
-                        email,
-                        self.set_password(new_password),
+                        first_name,
+                        last_name,
+                        self.password_hash,
                         self.username,
                     ),
                 )
                 conn.commit()
                 return True
-        except sqlite3.IntegrityError as e:
-            print(f"Error: {e}")
-        except sqlite3.DatabaseError as e:
+        except Exception as e:
             print(f"Error: {e}")
         return False
 
@@ -197,6 +205,34 @@ class User(UserMixin):
         return False
 
     @staticmethod
+    def get_all_users():
+        try:
+            with get_connection() as conn:
+                cur = conn.cursor()
+                get_query = """
+                SELECT * FROM users WHERE user_type = ?
+                """
+                cur.execute(get_query, ("client",))
+                all_user_data = cur.fetchall()
+                if not all_user_data:
+                    return []
+                return [
+                    User(
+                        id=user_data[0],
+                        username=user_data[1],
+                        first_name=user_data[2],
+                        last_name=user_data[3],
+                        email=user_data[4],
+                        password_hash=user_data[5],
+                        user_type=user_data[6],
+                    )
+                    for user_data in all_user_data
+                ]
+        except sqlite3.DatabaseError as e:
+            print(f"Error: {e}")
+            return []
+
+    @staticmethod
     def get_user(id):
         with get_connection() as conn:
             cur = conn.cursor()
@@ -210,26 +246,25 @@ class User(UserMixin):
             if user_data is None:
                 return None
 
-            print(user_data)
             if user_data[5] == "admin":
-                print("admin")
                 return User(
-                    id=1,
+                    id=user_data[0],
                     username=user_data[1],
-                    name=user_data[2],
-                    email=user_data[3],
-                    password_hash=user_data[4],
-                    user_type=user_data[5],
+                    first_name=user_data[2],
+                    last_name=user_data[3],
+                    email=user_data[4],
+                    password_hash=user_data[5],
+                    user_type=user_data[6],
                 )
 
-            print("user")
             return User(
                 id=user_data[0],
                 username=user_data[1],
-                name=user_data[2],
-                email=user_data[3],
-                password_hash=user_data[4],
-                user_type=user_data[5],
+                first_name=user_data[2],
+                last_name=user_data[3],
+                email=user_data[4],
+                password_hash=user_data[5],
+                user_type=user_data[6],
             )
 
     @staticmethod
@@ -248,10 +283,11 @@ class User(UserMixin):
                 return User(
                     id=user_data[0],
                     username=user_data[1],
-                    name=user_data[2],
-                    email=user_data[3],
-                    password_hash=user_data[4],
-                    user_type=user_data[5],
+                    first_name=user_data[2],
+                    last_name=user_data[3],
+                    email=user_data[4],
+                    password_hash=user_data[5],
+                    user_type=user_data[6],
                 )
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
@@ -273,10 +309,11 @@ class User(UserMixin):
                 return User(
                     id=user_data[0],
                     username=user_data[1],
-                    name=user_data[2],
-                    email=user_data[3],
-                    password_hash=user_data[4],
-                    user_type=user_data[5],
+                    first_name=user_data[2],
+                    last_name=user_data[3],
+                    email=user_data[4],
+                    password_hash=user_data[5],
+                    user_type=user_data[6],
                 )
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
@@ -291,7 +328,8 @@ class User(UserMixin):
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT NOT NULL UNIQUE,
-                    name TEXT NOT NULL,
+                    first_name TEXT NOT NULL,
+                    last_name TEXT NOT NULL,
                     email TEXT UNIQUE,
                     password_hash TEXT NOT NULL,
                     user_type TEXT DEFAULT client
