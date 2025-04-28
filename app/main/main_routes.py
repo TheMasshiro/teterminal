@@ -46,6 +46,12 @@ def availability():
     return Main().availability()
 
 
+@main.route("/reports/admin", methods=["GET"])
+@login_required
+def reports():
+    return Main().reports()
+
+
 @main.route("/available/cars", methods=["GET"])
 @login_required
 def available_cars():
@@ -92,18 +98,6 @@ def manage_buses():
 @login_required
 def manage_cars():
     return Main().manage_cars()
-
-
-@main.route("/dashboard/drivers/admin", methods=["GET", "POST"])
-@login_required
-def manage_drivers():
-    return Main().manage_drivers()
-
-
-@main.route("/dashboard/conductors/admin", methods=["GET", "POST"])
-@login_required
-def manage_conductors():
-    return Main().manage_conductors()
 
 
 @main.route("/<string:username>/profile/update", methods=["GET", "POST"])
