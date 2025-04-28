@@ -1,3 +1,50 @@
+document.addEventListener("DOMContentLoaded", function () {
+  status_toggle();
+  trip_toggle();
+});
+
+function status_toggle() {
+  const busStatusBtn = document.getElementById("busStatusBtn");
+  const carStatusBtn = document.getElementById("carStatusBtn");
+  const busVehicleStatus = document.getElementById("bus-vehicle-status");
+  const carVehicleStatus = document.getElementById("car-vehicle-status");
+
+  busStatusBtn.addEventListener("change", function () {
+    if (this.checked) {
+      busVehicleStatus.style.display = "block";
+      carVehicleStatus.style.display = "none";
+    }
+  });
+
+  carStatusBtn.addEventListener("change", function () {
+    if (this.checked) {
+      busVehicleStatus.style.display = "none";
+      carVehicleStatus.style.display = "block";
+    }
+  });
+}
+
+function trip_toggle() {
+  const busTripBtn = document.getElementById("busTripBtn");
+  const carTripBtn = document.getElementById("carTripBtn");
+  const busTripCount = document.getElementById("bus-trip-count");
+  const carTripCount = document.getElementById("car-trip-count");
+
+  busTripBtn.addEventListener("change", function () {
+    if (this.checked) {
+      busTripCount.style.display = "block";
+      carTripCount.style.display = "none";
+    }
+  });
+
+  carTripBtn.addEventListener("change", function () {
+    if (this.checked) {
+      busTripCount.style.display = "none";
+      carTripCount.style.display = "block";
+    }
+  });
+}
+
 document
   .querySelector("select[name='from_province']")
   .addEventListener("change", function () {
