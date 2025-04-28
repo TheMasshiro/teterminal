@@ -4,7 +4,7 @@ from typing import Any
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user
 
-from app.backend_helpers import autofill_edit, status_change
+from app.backend_helpers import add_status_count, autofill_edit, status_change
 from app.forms import AddBus, AddCar, EditBus, EditCar, EditClient, UpdateProfile
 from app.helpers import calculate_eta, geocode_place, get_distance, get_municipalities
 from app.models.users import User
@@ -93,6 +93,12 @@ class Manager(MainInterface):
                     return redirect(url_for("main.add_vehicle", type=type))
 
                 status_change(vehicle=Bus, form=form)
+                add_status_count(
+                    vehicle_number=form.vehicle_number.data,
+                    plate_number=form.plate_number.data,
+                    status=form.status.data,
+                    type="bus",
+                )
 
                 flash("Created", "success")
                 return redirect(url_for("main.manage_buses"))
@@ -150,6 +156,12 @@ class Manager(MainInterface):
                     return redirect(url_for("main.add_vehicle", type=type))
 
                 status_change(vehicle=Car, form=form)
+                add_status_count(
+                    vehicle_number=form.vehicle_number.data,
+                    plate_number=form.plate_number.data,
+                    status=form.status.data,
+                    type="car",
+                )
 
                 flash("Created", "success")
                 return redirect(url_for("main.manage_cars"))
@@ -244,12 +256,15 @@ class Manager(MainInterface):
                             )
                         )
                 else:
-                    values = bus.get_eta_distance(bus_number, plate_number)
-                    if values is None:
-                        values = ["", ""]
+                    distance = bus.get_distance(bus_number, plate_number)
+                    if distance is None:
+                        distance = 0
 
-                    distance = values[0]
-                    original_eta = values[1]
+                    original_eta = calculate_eta(
+                        distance_km=distance,
+                        average_speed=form.avg_speed.data,
+                        buffer_factor=1.6,
+                    )
 
                 if not bus.update_bus(
                     bus_number=form.vehicle_number.data,
@@ -274,6 +289,12 @@ class Manager(MainInterface):
 
                 Bus.update_eta(form.vehicle_number.data, form.plate_number.data, 0)
                 status_change(vehicle=Bus, form=form)
+                add_status_count(
+                    vehicle_number=form.vehicle_number.data,
+                    plate_number=form.plate_number.data,
+                    status=form.status.data,
+                    type="bus",
+                )
 
                 flash("Updated", "success")
                 return redirect(url_for("main.manage_buses"))
@@ -367,12 +388,15 @@ class Manager(MainInterface):
                             )
                         )
                 else:
-                    values = car.get_eta_distance(car_number, plate_number)
-                    if values is None:
-                        values = ["", ""]
+                    distance = car.get_distance(car_number, plate_number)
+                    if distance is None:
+                        distance = 0
 
-                    distance = values[0]
-                    original_eta = values[1]
+                    original_eta = calculate_eta(
+                        distance_km=distance,
+                        average_speed=form.avg_speed.data,
+                        buffer_factor=1.6,
+                    )
 
                 if not car.update_car(
                     car_number=form.vehicle_number.data,
@@ -397,6 +421,12 @@ class Manager(MainInterface):
 
                 Car.update_eta(form.vehicle_number.data, form.plate_number.data, 0)
                 status_change(vehicle=Car, form=form)
+                add_status_count(
+                    vehicle_number=form.vehicle_number.data,
+                    plate_number=form.plate_number.data,
+                    status=form.status.data,
+                    type="car",
+                )
 
                 flash("Updated", "success")
                 return redirect(url_for("main.manage_cars"))
