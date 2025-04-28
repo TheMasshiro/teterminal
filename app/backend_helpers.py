@@ -1,6 +1,89 @@
 from datetime import datetime, timedelta
 
 from app.helpers import convert_time_format, get_municipalities, time_remaining
+from app.models.reports import Reports
+
+
+def vehicle_trips(vehicles, type):
+    vehicle_trip_list = []
+
+    for vehicle in vehicles:
+        vehicle_type = None
+        vehicle_number = None
+        if type.lower() == "bus":
+            vehicle_type = "bus_number"
+            vehicle_number = vehicle.bus_number
+        elif type.lower() == "car":
+            vehicle_type = "car_number"
+            vehicle_number = vehicle.car_number
+
+        trips = count_vehicle_trips(vehicle_number, vehicle.plate_number, type.lower())
+
+        vehicle_trip_list.append({vehicle_type: vehicle_number, "trip_count": trips})
+    return vehicle_trip_list
+
+
+def vehicle_statuses(vehicles, type):
+    vehicle_status_list = []
+
+    for vehicle in vehicles:
+        vehicle_type = None
+        vehicle_number = None
+        if type.lower() == "bus":
+            vehicle_type = "bus_number"
+            vehicle_number = vehicle.bus_number
+        elif type.lower() == "car":
+            vehicle_type = "car_number"
+            vehicle_number = vehicle.car_number
+
+        statuses = count_statuses(vehicle_number, vehicle.plate_number, type.lower())
+
+        if statuses:
+            vehicle_status_list.append(
+                {
+                    vehicle_type: vehicle_number,
+                    "statuses": statuses,
+                }
+            )
+    return vehicle_status_list
+
+
+def reset_statuses(vehicles, type):
+    updated = False
+
+    for vehicle in vehicles:
+        if type.lower() == "bus":
+            if Reports.reset_daily_counters(
+                vehicle.bus_number, vehicle.plate_number, type.lower()
+            ):
+                updated = True
+        elif type.lower() == "car":
+            if Reports.reset_daily_counters(
+                vehicle.car_number, vehicle.plate_number, type.lower()
+            ):
+                updated = True
+
+    return updated
+
+
+def count_statuses(vehicle_number, plate_number, type):
+    statuses = Reports.get_statuses_count(
+        vehicle_number=vehicle_number, plate_number=plate_number, type=type
+    )
+    if statuses is None:
+        return None
+
+    return statuses
+
+
+def count_vehicle_trips(vehicle_number, plate_number, type):
+    trips = Reports.get_trip_count(
+        vehicle_number=vehicle_number, plate_number=plate_number, type=type
+    )
+    if trips is None:
+        trips = 0
+
+    return trips
 
 
 def updated_schedules(vehicles, type):
@@ -91,6 +174,9 @@ def check_arrival(vehicles, vehicle_handler, type_name):
                 vehicle.departure_time = (CURRENT_TIME + timedelta(minutes=1)).strftime(
                     "%I:%M %p - %d/%m/%y"
                 )
+                Reports.add_status(
+                    vehicle_number, vehicle.plate_number, "Available", type_name.lower()
+                )
 
 
 def display_availability(vehicles, vehicle_handler, type_name):
@@ -112,7 +198,6 @@ def display_availability(vehicles, vehicle_handler, type_name):
                 CURRENT_TIME >= vehicle_departure_time
                 and vehicle.status.lower() == "available"
             ):
-                print("HELLO?")
                 vehicle_handler.update_eta(vehicle_number, vehicle.plate_number, 0)
                 vehicle_handler.update_status(
                     vehicle_number, vehicle.plate_number, "In Transit"
@@ -123,6 +208,12 @@ def display_availability(vehicles, vehicle_handler, type_name):
                 vehicle.eta = 0
                 vehicle.status = "In Transit"
                 vehicle.departure_time = CURRENT_TIME.strftime("%I:%M %p - %d/%m/%y")
+                Reports.add_status(
+                    vehicle_number,
+                    vehicle.plate_number,
+                    "In Transit",
+                    type_name.lower(),
+                )
 
 
 def display_schedules(vehicles, vehicle_handler, type_name):
@@ -158,6 +249,12 @@ def display_schedules(vehicles, vehicle_handler, type_name):
                 vehicle.status = "Arrived At Destination"
                 vehicle.departure_time = (CURRENT_TIME + timedelta(minutes=1)).strftime(
                     "%I:%M %p - %d/%m/%y"
+                )
+                Reports.add_status(
+                    vehicle_number,
+                    vehicle.plate_number,
+                    "Arrived At Destination",
+                    type_name.lower(),
                 )
 
         elif (
@@ -226,3 +323,12 @@ def autofill_edit(vehicle, form):
 
     status = vehicle.status if vehicle.status else None
     form.status.data = status
+
+
+def add_status_count(vehicle_number, plate_number, status, type):
+    Reports.add_status(
+        vehicle_number=vehicle_number,
+        plate_number=plate_number,
+        status=status,
+        type=type,
+    )
