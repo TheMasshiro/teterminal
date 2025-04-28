@@ -58,6 +58,13 @@ class Bus:
                         self.original_eta,
                     ),
                 )
+
+                bus_trip_query = """
+                INSERT INTO bus_trips (bus_number, plate_number, trips, available, arrived, transit, shift, maintenance)
+                VALUES (?, ?, 0, 0, 0, 0, 0, 0)
+                """
+                cur.execute(bus_trip_query, (self.bus_number, self.plate_number))
+
                 conn.commit()
                 return True
         except sqlite3.IntegrityError as e:
@@ -168,7 +175,6 @@ class Bus:
                 departure_time = None
                 now = datetime.now()
 
-                # TODO: make sure the time for breaks
                 if status.lower() == "in transit":
                     departure_time = now.strftime("%I:%M %p - %d/%m/%y")
                 elif status.lower() == "available":
@@ -254,12 +260,12 @@ class Bus:
         return None
 
     @staticmethod
-    def get_eta_distance(bus_number, plate_number):
+    def get_distance(bus_number, plate_number):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 get_query = """
-                SELECT distance, original_eta
+                SELECT distance
                 FROM buses
                 WHERE bus_number = ? AND plate_number = ?
                 """
@@ -270,8 +276,8 @@ class Bus:
                         plate_number,
                     ),
                 )
-                values = cur.fetchone()
-                return values
+                distance = cur.fetchone()
+                return distance[0]
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
         return None
@@ -367,7 +373,7 @@ class Bus:
             with get_connection() as conn:
                 cur = conn.cursor()
                 bus_index = """
-                CREATE INDEX IF NOT EXISTS idx_cars ON buses(bus_number, plate_number);
+                CREATE INDEX IF NOT EXISTS idx_buses ON buses(bus_number, plate_number);
                 """
                 cur.execute(bus_index)
                 conn.commit()
@@ -423,6 +429,13 @@ class Car:
                         self.original_eta,
                     ),
                 )
+
+                car_trip_query = """
+                INSERT INTO car_trips (car_number, plate_number, trips, available, arrived, transit, shift, maintenance)
+                VALUES (?, ?, 0, 0, 0, 0, 0, 0)
+                """
+                cur.execute(car_trip_query, (self.car_number, self.plate_number))
+
                 conn.commit()
                 return True
         except sqlite3.IntegrityError as e:
@@ -533,7 +546,6 @@ class Car:
                 departure_time = None
                 now = datetime.now()
 
-                # TODO: make sure the time for breaks
                 if status.lower() == "in transit":
                     departure_time = now.strftime("%I:%M %p - %d/%m/%y")
                 elif status.lower() == "available":
@@ -619,12 +631,12 @@ class Car:
         return None
 
     @staticmethod
-    def get_eta_distance(car_number, plate_number):
+    def get_distance(car_number, plate_number):
         try:
             with get_connection() as conn:
                 cur = conn.cursor()
                 get_query = """
-                SELECT distance, original_eta
+                SELECT distance
                 FROM cars
                 WHERE car_number = ? AND plate_number = ?
                 """
@@ -635,8 +647,8 @@ class Car:
                         plate_number,
                     ),
                 )
-                values = cur.fetchone()
-                return values
+                distance = cur.fetchone()
+                return distance[0]
         except sqlite3.DatabaseError as e:
             print(f"Error: {e}")
         return None
