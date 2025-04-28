@@ -9,6 +9,8 @@ from app.backend_helpers import (
     display_schedules,
     updated_availability,
     updated_schedules,
+    vehicle_statuses,
+    vehicle_trips,
 )
 from app.models.users import User
 from app.models.vehicles import Bus, Car
@@ -36,6 +38,10 @@ class MainInterface(ABC):
         pass
 
     @abstractmethod
+    def reports(self) -> Any:
+        pass
+
+    @abstractmethod
     def schedules(self) -> Any:
         pass
 
@@ -49,14 +55,6 @@ class MainInterface(ABC):
 
     @abstractmethod
     def manage_cars(self) -> Any:
-        pass
-
-    @abstractmethod
-    def manage_drivers(self) -> Any:
-        pass
-
-    @abstractmethod
-    def manage_conductors(self) -> Any:
         pass
 
     @abstractmethod
@@ -93,6 +91,25 @@ class Main(MainInterface):
 
     def availability(self):
         return render_template("main/available.html", title="Fleet Availability")
+
+    def reports(self):
+        buses = Bus.get_all_buses()
+        cars = Car.get_all_cars()
+
+        buses_status = vehicle_statuses(buses, "bus")
+        cars_status = vehicle_statuses(cars, "car")
+
+        bus_trips = vehicle_trips(buses, "bus")
+        car_trips = vehicle_trips(cars, "car")
+
+        return render_template(
+            "main/reports.html",
+            title="Daily Reports",
+            buses=buses_status,
+            cars=cars_status,
+            bus_trips=bus_trips,
+            car_trips=car_trips,
+        )
 
     def schedules(self):
         return render_template("main/schedule.html", title="Fleet Schedules")
@@ -138,12 +155,6 @@ class Main(MainInterface):
         return render_template(
             "main/manage_cars.html", title="Manage Cars", cars=updated_cars
         )
-
-    def manage_drivers(self):
-        return render_template("main/manage_drivers.html", title="Manage Drivers")
-
-    def manage_conductors(self):
-        return render_template("main/manage_conductors.html", title="Manage Conductors")
 
     def schedules_cars(self):
         cars = Car.get_all_cars()
