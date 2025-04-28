@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {% if not disable_refresh %}<meta http-equiv="refresh" content="10">{% endif %}
         {% if title %}
             <title>{{ title }} - Teterminal</title>
         {% else %}
@@ -12,6 +13,9 @@
               rel="stylesheet"
               integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
               crossorigin="anonymous" />
+        <link rel="icon"
+              type="image/x-icon"
+              href="{{ url_for('static', filename='favicon.ico') }}">
     </head>
     <body class="container">
         {% if current_user.is_authenticated %}
@@ -51,7 +55,7 @@
                             </li>
                             {% if current_user.user_type == "admin" %}
                                 <li class="nav-item dropdown mx-2">
-                                    <a class="nav-link dropdown-toggle {% if active_page == "manage_clients" or active_page == "manage_buses" or active_page == "manage_cars" or active_page == "manage_drivers" or active_page == "manage_conductors" %}active bg-primary rounded{% endif %}"
+                                    <a class="nav-link dropdown-toggle {% if active_page == "manage_clients" or active_page == "manage_buses" or active_page == "manage_cars" %}active bg-primary rounded{% endif %}"
                                        href="#"
                                        role="button"
                                        data-bs-toggle="dropdown"
@@ -69,15 +73,11 @@
                                             <a class="dropdown-item {% if active_page == "manage_cars" %}text-primary{% endif %}"
                                                href="{{ url_for("main.manage_cars") }}">Cars</a>
                                         </li>
-                                        <li>
-                                            <a class="dropdown-item {% if active_page == "manage_drivers" %}text-primary{% endif %}"
-                                               href="{{ url_for("main.manage_drivers") }}">Drivers</a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item {% if active_page == "manage_conductors" %}text-primary{% endif %}"
-                                               href="{{ url_for("main.manage_conductors") }}">Conductors</a>
-                                        </li>
                                     </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mx-1 {% if active_page == 'reports' %}active bg-primary rounded{% endif %}"
+                                       href="{{ url_for("main.reports") }}">Reports</a>
                                 </li>
                             {% else %}
                                 <li class="nav-item">
