@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% set disable_refresh = true %}
+{% set active_page = "reports" %}
+{% block content %}
+    <div class="container my-5">
+        <h2 class="mb-4 text-center">Daily Reports</h2>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm rounded-4 border-0 h-100">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Daily Vehicle Status Report</h5>
+                            <div class="btn-group" role="group" aria-label="Vehicle type selection">
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="vehicleStatusType"
+                                       id="busStatusBtn"
+                                       autocomplete="off"
+                                       checked>
+                                <label class="btn btn-outline-light" for="busStatusBtn">Bus</label>
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="vehicleStatusType"
+                                       id="carStatusBtn"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-light" for="carStatusBtn">Car</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <div id="bus-vehicle-status">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>Bus No.</th>
+                                            <th>
+                                                <span class="badge text-bg-primary">Available</span>
+                                            </th>
+                                            <th>
+                                                <span class="badge text-bg-success">Arrived At Destination</span>
+                                            </th>
+                                            <th>
+                                                <span class="badge text-bg-warning">In Transit</span>
+                                            </th>
+                                            <th>
+                                                <span class="badge text-bg-info">Shift Over</span>
+                                            </th>
+                                            <th>
+                                                <span class="badge text-bg-danger">Maintenance</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-center">
+                                        {% for bus in buses %}
+                                            <tr>
+                                                <td>{{ bus.bus_number }}</td>
+                                                <td>{{ bus.statuses.available }}</td>
+                                                <td>{{ bus.statuses.arrived }}</td>
+                                                <td>{{ bus.statuses.transit }}</td>
+                                                <td>{{ bus.statuses.shift }}</td>
+                                                <td>{{ bus.statuses.maintenance }}</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="7" class="text-center py-4 text-muted">No buses found.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="car-vehicle-status" style="display: none;">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>Car No.</th>
+                                            <th>
+                                                <span class="badge text-bg-primary">Available</span>
+                                            </th>
+                                            <th>
+                                                <span class="badge text-bg-success">Arrived At Destination</span>
+                                            </th>
+                                            <th>
+                                                <span class="badge text-bg-warning">In Transit</span>
+                                            </th>
+                                            <th>
+                                                <span class="badge text-bg-info">Shift Over</span>
+                                            </th>
+                                            <th>
+                                                <span class="badge text-bg-danger">Maintenance</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-center">
+                                        {% for car in cars %}
+                                            <tr>
+                                                <td>{{ car.car_number }}</td>
+                                                <td>{{ car.statuses.available }}</td>
+                                                <td>{{ car.statuses.arrived }}</td>
+                                                <td>{{ car.statuses.transit }}</td>
+                                                <td>{{ car.statuses.shift }}</td>
+                                                <td>{{ car.statuses.maintenance }}</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="7" class="text-center py-4 text-muted">No cars found.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm rounded-4 border-0 h-100">
+                    <div class="card-header bg-dark text-white py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Trip Count Report</h5>
+                            <div class="btn-group" role="group" aria-label="Trip count type selection">
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="tripCountType"
+                                       id="busTripBtn"
+                                       autocomplete="off"
+                                       checked>
+                                <label class="btn btn-outline-light" for="busTripBtn">Bus</label>
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="tripCountType"
+                                       id="carTripBtn"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-light" for="carTripBtn">Car</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <div id="bus-trip-count">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>Bus No.</th>
+                                            <th>Trips Completed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-center">
+                                        {% for trip in bus_trips %}
+                                            <tr>
+                                                <td>{{ trip.bus_number }}</td>
+                                                <td>{{ trip.trip_count }}</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="2" class="text-center py-4 text-muted">No bus trip data available.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="car-trip-count" style="display: none;">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>Car No.</th>
+                                            <th>Trips Completed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-center">
+                                        {% for trip in car_trips %}
+                                            <tr>
+                                                <td>{{ trip.car_number }}</td>
+                                                <td>{{ trip.trip_count }}</td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="2" class="text-center py-4 text-muted">No car trip data available.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
