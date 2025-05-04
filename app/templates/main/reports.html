@@ -3,7 +3,24 @@
 {% set active_page = "reports" %}
 {% block content %}
     <div class="container my-5">
-        <h2 class="mb-4 text-center">Daily Reports</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Daily Reports</h2>
+            <form method="post"
+                  action="{{ url_for("main.extract_reports") }}"
+                  class="d-flex align-items-center">
+                <select class="form-select form-select-sm me-2"
+                        id="reportType"
+                        name="vehicle_type"
+                        required
+                        style="width: auto">
+                    <option value="bus" selected>Bus</option>
+                    <option value="car">Car</option>
+                </select>
+                <button type="submit"
+                        class="btn btn-sm btn-primary"
+                        onclick="handleExtractClick()">Extract</button>
+            </form>
+        </div>
         <div class="row">
             <div class="col-md-6 mb-4">
                 <div class="card shadow-sm rounded-4 border-0 h-100">

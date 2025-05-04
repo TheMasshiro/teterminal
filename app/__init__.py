@@ -11,7 +11,6 @@ from app.backend_helpers import (
     display_schedules,
     reset_statuses,
 )
-from app.models.reports import Reports
 from app.models.vehicles import Bus, Car
 from instance.config import Config
 
