@@ -1,6 +1,7 @@
 from flask import jsonify, redirect, request, url_for
 from flask_login import current_user, login_required
 
+from app.backend_helpers import extract_data
 from app.helpers import get_municipalities
 from app.main import main_bp as main
 from app.main.main import Main
@@ -49,6 +50,8 @@ def availability():
 @main.route("/reports/admin", methods=["GET"])
 @login_required
 def reports():
+    if current_user.user_type == "client":
+        return Main().dashboard_client()
     return Main().reports()
 
 
@@ -162,3 +165,12 @@ def fetch_municipalities():
     province = request.args.get("province")
     municipalities = get_municipalities(province)
     return jsonify(municipalities)
+
+
+@main.route("/extract_reports", methods=["POST"])
+@login_required
+def extract_reports():
+    vehicle_type = request.form.get("vehicle_type")
+    print(vehicle_type)
+    extract_data(vehicle_type)
+    return redirect(url_for("main.reports"))

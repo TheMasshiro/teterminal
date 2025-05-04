@@ -1,7 +1,33 @@
+import os
 from datetime import datetime, timedelta
+
+import pandas as pd
 
 from app.helpers import convert_time_format, get_municipalities, time_remaining
 from app.models.reports import Reports
+
+
+def extract_data(type):
+    report = Reports.return_report_db(type)
+    base_path = os.path.expanduser("~/Documents/teterminal/reports")
+
+    if type == "bus":
+        folder_path = os.path.join(base_path, "buses")
+    else:
+        folder_path = os.path.join(base_path, "cars")
+
+    os.makedirs(folder_path, exist_ok=True)
+
+    if not report or not report[0] or not report[1]:
+        return
+
+    df = pd.read_sql(report[1], report[0])
+
+    date_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    filename = f"{type}_report_{date_str}.xlsx"
+    file_path = os.path.join(folder_path, filename)
+
+    df.to_excel(file_path, index=False)
 
 
 def vehicle_trips(vehicles, type):
