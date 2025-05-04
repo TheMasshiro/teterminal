@@ -3,6 +3,13 @@ document.addEventListener("DOMContentLoaded", function () {
   trip_toggle();
 });
 
+function handleExtractClick() {
+  const select = document.getElementById("reportType");
+  const type = select.value;
+  console.log("Extracting report for:", type);
+  alert("Generating " + type + " report...");
+}
+
 function status_toggle() {
   const busStatusBtn = document.getElementById("busStatusBtn");
   const carStatusBtn = document.getElementById("carStatusBtn");
