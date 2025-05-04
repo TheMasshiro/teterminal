@@ -153,6 +153,13 @@ class Bus:
                 WHERE bus_number = ? AND plate_number = ?
                 """
                 cur.execute(delete_query, (self.bus_number, self.plate_number))
+
+                bus_trips = """
+                DELETE FROM bus_trips
+                WHERE bus_number = ? AND plate_number = ?
+                """
+                cur.execute(bus_trips, (self.bus_number, self.plate_number))
+
                 conn.commit()
                 if cur.rowcount == 0:
                     return False
@@ -524,6 +531,13 @@ class Car:
                 WHERE car_number = ? AND plate_number = ?
                 """
                 cur.execute(delete_query, (self.car_number, self.plate_number))
+
+                car_trips = """
+                DELETE FROM car_trips
+                WHERE car_number = ? AND plate_number = ?
+                """
+                cur.execute(car_trips, (self.car_number, self.plate_number))
+
                 conn.commit()
                 if cur.rowcount == 0:
                     return False

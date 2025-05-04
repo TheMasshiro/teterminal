@@ -11,6 +11,30 @@ def get_connection():
 
 class Reports:
     @staticmethod
+    def return_report_db(type):
+        try:
+            with get_connection() as conn:
+                if type.lower() == "bus":
+                    number_type = "bus_number"
+                    table_name = "bus_trips"
+                elif type.lower() == "car":
+                    number_type = "car_number"
+                    table_name = "car_trips"
+                else:
+                    return None
+
+                query = f"""
+                    SELECT id, {number_type}, plate_number, trips, available, arrived, transit, maintenance, last_update
+                    FROM {table_name}
+                    WHERE today_date = DATE('now', 'localtime')
+                """
+                return conn, query
+
+        except sqlite3.DatabaseError as e:
+            print(f"Error: {e}")
+            return None
+
+    @staticmethod
     def get_trip_count(vehicle_number, plate_number, type):
         try:
             with get_connection() as conn:
