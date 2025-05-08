@@ -9,7 +9,6 @@
             </h1>
             <p class="text-muted">Welcome! Choose an option below</p>
         </div>
-        <!-- Row 1: Availability + Schedules -->
         <div class="row w-100 justify-content-center mb-3">
             <div class="col-12 col-md-4 mb-3 mb-md-0">
                 <a class="btn btn-primary btn-lg w-100 shadow-sm"
@@ -24,7 +23,6 @@
                 </a>
             </div>
         </div>
-        <!-- Row 2: Profile + Logout -->
         <div class="row w-100 justify-content-center mb-3">
             <div class="col-12 col-md-4 mb-3 mb-md-0">
                 <a class="btn btn-warning btn-lg w-100 shadow-sm"
@@ -39,10 +37,9 @@
                 </a>
             </div>
         </div>
-        <!-- Row 3: Admin Dropdown (centered) -->
         {% if current_user.user_type == "admin" %}
-            <div class="row w-100 justify-content-center">
-                <div class="col-12 col-md-5">
+            <div class="row w-100 justify-content-center mb-3">
+                <div class="col-12 col-md-4">
                     <div class="dropdown text-center">
                         <button class="btn btn-info btn-lg dropdown-toggle w-100 shadow-sm"
                                 type="button"
@@ -64,6 +61,12 @@
                             </li>
                         </ul>
                     </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <a class="btn btn-success btn-lg w-100 shadow-sm"
+                       href="{{ url_for("main.reports") }}">
+                        <i class="fa-solid fa-clipboard me-2"></i> Reports
+                    </a>
                 </div>
             </div>
         {% endif %}
